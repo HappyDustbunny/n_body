@@ -60,6 +60,10 @@ impl Hector {
             z: (self.x * other_hector.y) - (self.y * other_hector.x)
         }
     }
+
+    pub fn length(&self) -> f32 {
+        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
+    }
 }
 
 pub struct Star {
@@ -85,5 +89,10 @@ impl Star {
 
     pub fn find_pos(&mut self, timestep: f32) { // Simple Euler integration: s = s + v*dt
         self.pos.add_change(&self.vel.multiply(timestep));
+    }
+
+    pub fn acc_towards(&mut self, other_star: Star) {
+        let distance = self.pos.multiply(-1.0).add(&other_star.pos);
+        self.acc.add_change(&distance.multiply(other_star.mass/distance.length().powi(3)));
     }
 }
