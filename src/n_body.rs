@@ -1,14 +1,35 @@
 extern crate rand;
+use rand::prelude::*;
 
 // #[allow(dead_code)]
 fn main() {
+    static NUMBER_OF_STARS: u32 = 10; // Number of stars
     let timestep = 0.1; // Time in Mega year
     let mut stars: Vec<Star> = vec![];
-    stars = initialise_stars();
+    stars = initialise_stars(NUMBER_OF_STARS);
+    for n in stars {
+        println!("p  {:?}   {:?}    {:?}  v  {:?}   {:?}    {:?}", n.pos.x, n.pos.y, n.pos.z, n.vel.x, n.vel.y, n.vel.z);
+    }
 }
 
-fn initialise_stars() -> Vec<Star> {
+fn initialise_stars(number_of_stars: u32) -> Vec<Star> {
+    let radius_of_cluster: f32 = 100.0;
     let mut stars: Vec<Star> = vec![];
+
+    for _item in 1..number_of_stars {
+        let mut newstar = Star::new();
+        newstar.pos=Hector {
+            x: thread_rng().gen_range(0.0f32, radius_of_cluster),
+            y: thread_rng().gen_range(0.0f32, radius_of_cluster),
+            z: thread_rng().gen_range(0.0f32, radius_of_cluster)
+        };
+        newstar.vel = Hector {
+            x: -newstar.pos.y/radius_of_cluster,
+            y: newstar.pos.x/radius_of_cluster,
+            z: 0.0
+        };
+        stars.push(newstar)
+    }
     println!("Yay");
     stars
 }
