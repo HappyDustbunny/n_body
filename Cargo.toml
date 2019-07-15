@@ -4,10 +4,6 @@ version = "0.1.0"
 authors = ["Mads Horn <madshorn@operamail.com>"]
 edition = "2018"
 
-[[bin]]
-name = "n_body"
-path = "src/n_body.rs"
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
