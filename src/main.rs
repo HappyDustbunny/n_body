@@ -9,14 +9,18 @@ fn main() {
     let timestep = 0.1; // Time in Mega year
 
     let mut stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
-    for n in 1..NUMBER_OF_STARS {
-        for m in 1..NUMBER_OF_STARS {
-            stars[n].acc_towards(*stars[m])
+    for n in 0..NUMBER_OF_STARS {
+        let mut current_star = stars[n];
+        for m in 0..NUMBER_OF_STARS {
+            current_star.acc_towards(&stars[m]);
         }
-        stars[n].find_vel(timestep);
-        stars[n].find_pos(timestep);
-        println!("p  {:?}   {:?}    {:?}  v  {:?}   {:?}    {:?}", stars[n].pos.x, stars[n].pos.y,
-        stars[n].pos.z, stars[n].vel.x, stars[n].vel.y, stars[n].vel.z);
+        println!("p  {:?}   {:?}    {:?}  v  {:?}   {:?}    {:?}", current_star.pos.x, current_star.pos.y,
+        current_star.pos.z, current_star.vel.x, current_star.vel.y, current_star.vel.z);
+        stars[n] = current_star;
+    }
+    for o in  0..NUMBER_OF_STARS {
+        stars[o].find_vel(timestep);
+        stars[o].find_pos(timestep);
     }
 }
 

@@ -1,3 +1,5 @@
+
+#[derive(Copy, Clone)]
 pub struct Hector { // Mathematical vector is called Hector in order not to confuse it with a Rust
                 // vector. We could probably use a crate, but this is more fun as an exercise.
     pub x: f32,
@@ -51,6 +53,7 @@ impl Hector {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct Star {
     pub mass: f32,
     pub pos: Hector,
@@ -76,7 +79,7 @@ impl Star {
         self.pos.add_change(&self.vel.multiply(timestep));
     }
 
-    pub fn acc_towards(&mut self, other_star: Star) {
+    pub fn acc_towards(&mut self, other_star: &Star) {
         let distance = self.pos.multiply(-1.0).add(&other_star.pos);
         self.acc.add_change(&distance.multiply(other_star.mass/distance.length().powi(3)));
     }
