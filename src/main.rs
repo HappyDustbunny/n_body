@@ -11,19 +11,17 @@ fn main() {
     let mut stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
     for _k in 0..2 {
         for n in 0..NUMBER_OF_STARS {
-            println!("n {} p  {:?}   {:?}    {:?}  v  {:?}   {:?}    {:?}", n, stars[n].pos.x, stars[n].pos.y,
-            stars[n].pos.z, stars[n].vel.x, stars[n].vel.y, stars[n].vel.z);
             let mut current_star = stars[n];
             for m in 0..NUMBER_OF_STARS {
                 current_star.acc_towards(&stars[m]);
             }
             stars[n] = current_star;
-            println!("p  {:?}   {:?}    {:?}  v  {:?}   {:?}    {:?}", stars[n].pos.x, stars[n].pos.y,
-            stars[n].pos.z, stars[n].vel.x, stars[n].vel.y, stars[n].vel.z);
         }
         for o in  0..NUMBER_OF_STARS {
             stars[o].find_vel(timestep);
             stars[o].find_pos(timestep);
+            println!("{:?}", o);
+            stars[o].print_stats();
         }
     }
 }

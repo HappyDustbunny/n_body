@@ -81,6 +81,15 @@ impl Star {
 
     pub fn acc_towards(&mut self, other_star: &Star) {
         let distance = self.pos.multiply(-1.0).add(&other_star.pos);
-        self.acc.add_change(&distance.multiply(other_star.mass/distance.length().powi(3)));
+        if distance.length() > std::f32::EPSILON {
+            let distance = distance.multiply(other_star.mass/distance.length().powi(3));
+            self.acc.add_change(&distance);
+        }
+    }
+
+    pub fn print_stats(&self) {
+        println!("M: {:?} P: {:?} {:?} {:?} V: {:?} {:?} {:?} A: {:?} {:?} {:?}",
+        self.mass, self.pos.x, self.pos.y, self.pos.z, self.vel.x, self.vel.y, self.vel.z,
+        self.acc.x, self.acc.y, self.acc.z);
     }
 }
