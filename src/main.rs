@@ -1,5 +1,7 @@
 extern crate rand;
 use rand::prelude::*;
+use nannou::prelude::*;
+
 
 extern crate n_body;
 use n_body::hns;
@@ -24,6 +26,22 @@ fn main() {
             stars[o].print_stats();
         }
     }
+
+    nannou::sketch(view);
+}
+
+fn view(app: &App, frame:Frame) -> Frame {
+    app.main_window().set_inner_size_points(720.0, 720.0);
+
+    let draw = app.draw();
+    draw.background().color(BLACK);
+    draw.ellipse().x_y(50.0, 50.0).color(BLUE);
+    // for l in 0..NUMBER_OF_STARS {
+    //     draw.ellipse().x_y(stars[l].pos.x, stars[l].pos.y).radius(1.0);
+    // }
+    draw.to_frame(app, &frame).unwrap();
+
+    frame
 }
 
 fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {
