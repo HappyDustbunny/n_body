@@ -9,18 +9,22 @@ fn main() {
     let timestep = 0.1; // Time in Mega year
 
     let mut stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
-    for n in 0..NUMBER_OF_STARS {
-        let mut current_star = stars[n];
-        for m in 0..NUMBER_OF_STARS {
-            current_star.acc_towards(&stars[m]);
+    for _k in 0..2 {
+        for n in 0..NUMBER_OF_STARS {
+            println!("n {} p  {:?}   {:?}    {:?}  v  {:?}   {:?}    {:?}", n, stars[n].pos.x, stars[n].pos.y,
+            stars[n].pos.z, stars[n].vel.x, stars[n].vel.y, stars[n].vel.z);
+            let mut current_star = stars[n];
+            for m in 0..NUMBER_OF_STARS {
+                current_star.acc_towards(&stars[m]);
+            }
+            stars[n] = current_star;
+            println!("p  {:?}   {:?}    {:?}  v  {:?}   {:?}    {:?}", stars[n].pos.x, stars[n].pos.y,
+            stars[n].pos.z, stars[n].vel.x, stars[n].vel.y, stars[n].vel.z);
         }
-        println!("p  {:?}   {:?}    {:?}  v  {:?}   {:?}    {:?}", current_star.pos.x, current_star.pos.y,
-        current_star.pos.z, current_star.vel.x, current_star.vel.y, current_star.vel.z);
-        stars[n] = current_star;
-    }
-    for o in  0..NUMBER_OF_STARS {
-        stars[o].find_vel(timestep);
-        stars[o].find_pos(timestep);
+        for o in  0..NUMBER_OF_STARS {
+            stars[o].find_vel(timestep);
+            stars[o].find_pos(timestep);
+        }
     }
 }
 
@@ -28,7 +32,7 @@ fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {
     let radius_of_cluster: f32 = 100.0;
     let mut stars: Vec<hns::Star> = vec![];
 
-    for _item in 1..number_of_stars {
+    for _item in 0..number_of_stars {
         let mut newstar = hns::Star::new();
         newstar.pos=hns::Hector {
             x: thread_rng().gen_range(0.0f32, radius_of_cluster),
