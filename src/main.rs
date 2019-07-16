@@ -26,7 +26,6 @@ fn main() {
             stars[o].print_stats();
         }
     }
-
     nannou::sketch(view);
 }
 
