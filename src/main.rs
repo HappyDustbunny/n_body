@@ -7,24 +7,32 @@ extern crate n_body;
 use n_body::hns;
 
 fn main() {
-    static NUMBER_OF_STARS: usize = 10; // Number of stars
+    static NUMBER_OF_STARS: usize = 32; // Number of stars
     let timestep = 0.1; // Time in Mega year
 
     let mut stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
     for _k in 0..2 {
-        for n in 0..NUMBER_OF_STARS {
-            let mut current_star = stars[n];
-            current_star.acc = hns::Hector::new();
-            for m in 0..NUMBER_OF_STARS {
-                current_star.acc_towards(&stars[m]);
-            }
-            stars[n] = current_star;
+        let sectors = make_sectors(stars.clone(), 3);
+        let sectors_as_stars = Vec::new();
+        stars = Vec::new();
+        for sec in sectors {
+            sectors_as_stars.push(sec.as_star())
         }
-        for o in  0..NUMBER_OF_STARS {
-            stars[o].find_vel(timestep);
-            stars[o].find_pos(timestep);
+        for sec in sectors {
+            sec.acc_reset();
+            sec.internal_acc();
+            for sas in sectors_as_stars {
+                sec.external_acc(sas);
+            }
+            for star in sector {
+                stars.push(star);
+            }
+        }
+        for star in stars {
+            star.find_vel(timestep);
+            star.find_pos(timestep);
             println!("{:?}", o);
-            stars[o].print_stats();
+            star.print_stats();
         }
     }
     nannou::sketch(view);
@@ -48,7 +56,7 @@ fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {
     let radius_of_cluster: f32 = 100.0;
     let mut stars: Vec<hns::Star> = vec![];
 
-    for _item in 0..number_of_stars {
+    for _ in 0..number_of_stars {
         let mut newstar = hns::Star::new();
         newstar.pos=hns::Hector {
             x: thread_rng().gen_range(0.0f32, radius_of_cluster),
@@ -62,11 +70,10 @@ fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {
         };
         stars.push(newstar)
     }
-    println!("Yay");
     stars
 }
 
-fn make_sectors(star_list: vec<hns::Star>, recursions_left: usize) -> vec<hns::Star> {
+fn make_sectors(star_list: Vec<hns::Star>, recursions_left: usize) -> Vec<hns::Sector> {
     if recursions_left > 0 {
         if 2.pow(recursions_left) > star_list.len() {
             panic!("The recursion depth is greater than the number of stars.");
@@ -86,22 +93,45 @@ fn make_sectors(star_list: vec<hns::Star>, recursions_left: usize) -> vec<hns::S
         }
         sub_list_1
     } else {
-        vec!(find_center(star_list))
+        let mut return_sector = hns::Sector::new();
+        return_sector.add_multiple_stars(star_list);
+        vec!(return_sector)
     }
 }
 
-fn find_center(star_list: vec<hns::Star>) -> hns::Star {
-    let mut center = hns::Star::new();
-    center.mass = 0.0;
-    for star in star_list {
-        center.pos.add_change(star.pos.multiply(star.mass));
-        center.mass += star.mass;
-    }
-    center.pos.x /= center.mass;
-    center.pos.y /= center.mass;
-    center.pos.z /= center.mass;
-    center
-}
+// fn find_center(star_list: Vec<hns::Star>) -> (hns::Star, hns::Hector, hns::Hector) {
+//     let mut center = hns::Star::new();
+//     center.mass = 0.0;
+//     let mut max_hector = star_list[0].pos
+//     let mut min_hector = star_list[0].pos
+//     for star in star_list {
+//         center.pos.add_change(star.pos.multiply(star.mass));
+//         center.mass += star.mass;
+//
+//         if star.pos.x > max_hector.x {
+//             max_hector.x = star.pos.x
+//         }
+//         if star.pos.y > max_hector.y {
+//             max_hector.y = star.pos.y
+//         }
+//         if star.pos.z > max_hector.z {
+//             max_hector.z = star.pos.z
+//         }
+//         if star.pos.x < min_hector.x {
+//             min_hector.x = star.pos.x
+//         }
+//         if star.pos.y < min_hector.y {
+//             min_hector.y = star.pos.y
+//         }
+//         if star.pos.z < min_hector.z {
+//             min_hector.z = star.pos.z
+//         }
+//     }
+//     center.pos.x /= center.mass;
+//     center.pos.y /= center.mass;
+//     center.pos.z /= center.mass;
+//     (center, min_hector, max_hector)
+// }
 
 // fn initialise_stars(number_of_stars: u32) -> Vec<Star> {
 //     let radius_of_cluster: f32 = 100.0;
