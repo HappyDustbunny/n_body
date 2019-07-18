@@ -14,6 +14,7 @@ fn main() {
     for _k in 0..2 {
         for n in 0..NUMBER_OF_STARS {
             let mut current_star = stars[n];
+            current_star.acc = hns::Hector::new();
             for m in 0..NUMBER_OF_STARS {
                 current_star.acc_towards(&stars[m]);
             }
@@ -65,6 +66,43 @@ fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {
     stars
 }
 
+fn make_sectors(star_list: vec<hns::Star>, recursions_left: usize) -> vec<hns::Star> {
+    if recursions_left > 0 {
+        if 2.pow(recursions_left) > star_list.len() {
+            panic!("The recursion depth is greater than the number of stars.");
+        }
+        if recursions_left % 3 == 0 {
+            star_list.sort_by(|a, b| a.pos.x.partial_cmp(b.pos.x).unwrap());
+        } else if recursions_left % 3 == 1 {
+            star_list.sort_by(|a, b| a.pos.y.partial_cmp(b.pos.y).unwrap());
+        } else {
+            star_list.sort_by(|a, b| a.pos.z.partial_cmp(b.pos.z).unwrap());
+        }
+        let sub_list_1, sub_list_2 = star_list.split_at(star_list.len()/2);
+        let mut sub_list_1 = make_sectors(sub_list_1, recursions_left - 1);
+        let sub_list_2 = make_sectors(sub_list_2, recursions_left - 1);
+        for sector in sub_list_2 {
+            sub_list_1.push(sector);
+        }
+        sub_list_1
+    } else {
+        vec!(find_center(star_list))
+    }
+}
+
+fn find_center(star_list: vec<hns::Star>) -> hns::Star {
+    let mut center = hns::Star::new();
+    center.mass = 0.0;
+    for star in star_list {
+        center.pos.add_change(star.pos.multiply(star.mass));
+        center.mass += star.mass;
+    }
+    center.pos.x /= center.mass;
+    center.pos.y /= center.mass;
+    center.pos.z /= center.mass;
+    center
+}
+
 // fn initialise_stars(number_of_stars: u32) -> Vec<Star> {
 //     let radius_of_cluster: f32 = 100.0;
 //     let mut stars: Vec<Star> = vec![];
@@ -86,7 +124,7 @@ fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {
 //     println!("Yay");
 //     stars
 // }
-//
+
 // pub struct Hector { // Mathematical vector is called Hector in order not to confuse it with a Rust
 //                 // vector. We could probably use a crate, but this is more fun as an exercise.
 //     pub x: f32,
