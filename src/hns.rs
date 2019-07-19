@@ -134,18 +134,19 @@ impl Sector {
 
     pub fn add_star(&mut self, new_star: Star) { //Adds a single star to a Sector.
         self.total_mass += new_star.mass;
-        self.center.add_change(new_star.pos.multiply(new_star.mass).divide_by(self.total_mass));
+        self.center.add_change(&new_star.pos.multiply(new_star.mass).divide_by(self.total_mass));
         self.star_list.push(new_star);
     }
 
     pub fn add_multiple_stars(&mut self, new_stars: Vec<Star>) { //Adds multiple stars to a Sector
         let mut center_mod = Hector::new();
         for star in new_stars {
-            self.total_mass += star;
-            center_mod.add_change(star.pos.multiply(star.mass));
+            self.total_mass += star.mass;
+            center_mod.add_change(&star.pos.multiply(star.mass));
+            self.star_list.push(star)
         }
         center_mod.divide_by_change(self.total_mass);
-        self.center.add_change(center_mod);
+        self.center.add_change(&center_mod);
     }
 
     pub fn as_star(&self) -> Star { //Makes a Star with the Sector's properties.
@@ -158,15 +159,15 @@ impl Sector {
     }
 
     pub fn acc_reset(&mut self) { //Sets the acceleration of all Stars in the Sector to 0.
-        for star in self.star_list {
-            star.acc = Hector::new();
+        for n in 0..self.star_list.len() {
+            self.star_list[n].acc = Hector::new();
         }
     }
 
     pub fn internal_acc(&mut self) { //Accelerates all Stars in the Sector towards each other.
         for n in 0..self.star_list.len() {
             let mut current_star = self.star_list[n];
-            for m in self.star_list.len() {
+            for m in 0..self.star_list.len() {
                 current_star.acc_towards(&self.star_list[m]);
             }
             self.star_list[n] = current_star;
@@ -177,8 +178,8 @@ impl Sector {
                                                     //towards the target. use as_star if you
                                                     //want to target another Sector.
         if self.center != target.pos {
-            for star in self.star_list {
-                star.acc_towards(target)
+            for n in 0..self.star_list.len() {
+                self.star_list[n].acc_towards(target);
             }
         }
     }
