@@ -49,33 +49,33 @@ fn view(app: &App, frame:Frame) -> Frame {
     static NUMBER_OF_STARS: usize = 50; // Number of stars
     let timestep = 5.5; // Time in Mega year
 
-    let mut stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
-    // let mut sectors = make_sectors(stars, 3);
-    // for _k in 0..3000 {
-    //     let mut sectors_as_stars = Vec::new();
-    //     let mut stars = Vec::new();
-    //     for sec in &sectors {
-    //         sectors_as_stars.push(sec.as_star())
-    //     }
-    //     for mut sec in sectors {
-    //         sec.acc_reset();
-    //         sec.internal_acc();
-    //         for sas in &sectors_as_stars {
-    //             sec.external_acc(sas);
-    //         }
-    //         for star in sec.star_list {
-    //             stars.push(star);
-    //         }
-    //     }
-    //     println!("Loop {:?}", _k);
+    let stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
+    let mut sectors = make_sectors(stars, 3);
+    for _k in 0..300 {
+        let mut sectors_as_stars = Vec::new();
+        let mut stars = Vec::new();
+        for sec in &sectors {
+            sectors_as_stars.push(sec.as_star())
+        }
+        for mut sec in sectors {
+            sec.acc_reset();
+            sec.internal_acc();
+            for sas in &sectors_as_stars {
+                sec.external_acc(sas);
+            }
+            for star in sec.star_list {
+                stars.push(star);
+            }
+        }
+        println!("Loop {:?}", _k);
         for star in &mut stars {
             star.find_vel(timestep);
             star.find_pos(timestep);
             // star.print_stats();
             draw.ellipse().x_y(star.pos.x, star.pos.y).radius(1.0);
         }
-    //     sectors = make_sectors(stars, 3);
-    // }
+        sectors = make_sectors(stars, 3);
+    }
 
     draw.to_frame(app, &frame).unwrap();
 
@@ -88,6 +88,7 @@ fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {
 
     for _ in 0..number_of_stars {
         let mut newstar = hns::Star::new();
+        newstar.mass=1.0;
         newstar.pos=hns::Hector {
             x: thread_rng().gen_range(-radius_of_cluster, radius_of_cluster),
             y: thread_rng().gen_range(-radius_of_cluster, radius_of_cluster),
