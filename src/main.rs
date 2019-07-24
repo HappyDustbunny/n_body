@@ -7,35 +7,37 @@ extern crate n_body;
 use n_body::hns;
 
 fn main() {
-    // static NUMBER_OF_STARS: usize = 32; // Number of stars
-    // let timestep = 0.1; // Time in Mega year
-    //
-    // let stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
-    // let mut sectors = make_sectors(stars, 3);
-    // for _k in 0..2 {
-    //     let mut sectors_as_stars = Vec::new();
-    //     let mut stars = Vec::new();
-    //     for sec in &sectors {
-    //         sectors_as_stars.push(sec.as_star())
-    //     }
-    //     for mut sec in sectors {
-    //         sec.acc_reset();
-    //         sec.internal_acc();
-    //         for sas in &sectors_as_stars {
-    //             sec.external_acc(sas);
-    //         }
-    //         for star in sec.star_list {
-    //             stars.push(star);
-    //         }
-    //     }
-    //     println!("Loop {:?}", _k);
-    //     for star in &mut stars {
-    //         star.find_vel(timestep);
-    //         star.find_pos(timestep);
-    //         star.print_stats();
-    //     }
-    //     sectors = make_sectors(stars, 3);
-    // }
+//     let number_of_stars: usize = 32; // Number of stars
+//     let timestep = 0.1; // Time in Mega year
+//
+//     let stars: Vec<hns::Star> = initialise_stars(number_of_stars);
+//     let mut sectors = make_sectors(stars, 3);
+//     for _k in 0..2 {
+//         let mut sectors_as_stars = Vec::new();
+//         let mut stars = Vec::new();
+//         for sec in &sectors {
+//             sectors_as_stars.push(sec.as_star())
+//         }
+//         for mut sec in sectors {
+//             sec.acc_reset();
+//             sec.internal_acc();
+//             for sas in &sectors_as_stars {
+//                 sec.external_acc(sas);
+//             }
+//             for star in sec.star_list {
+//                 stars.push(star);
+//             }
+//         }
+//         println!("Loop {:?}", _k);
+//         for star in &mut stars {
+//             star.find_vel(timestep);
+//             star.find_pos(timestep);
+//             star.print_stats();
+//         }
+//         sectors = make_sectors(stars, 3);
+//     }
+// }
+
     nannou::sketch(view);
 }
 
@@ -46,10 +48,10 @@ fn view(app: &App, frame:Frame) -> Frame {
     draw.background().color(BLACK);
     draw.ellipse().x_y(50.0, 50.0).radius(1.0).color(WHITE);
 
-    static NUMBER_OF_STARS: usize = 50; // Number of stars
+    let number_of_stars: usize = 10; // Number of stars
     let timestep = 5.5; // Time in Mega year
 
-    let stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
+    let stars: Vec<hns::Star> = initialise_stars(number_of_stars);
     let mut sectors = make_sectors(stars, 3);
     for _k in 0..300 {
         let mut sectors_as_stars = Vec::new();
@@ -76,8 +78,6 @@ fn view(app: &App, frame:Frame) -> Frame {
         }
         sectors = make_sectors(stars, 3);
     }
-
-    draw.to_frame(app, &frame).unwrap();
 
     frame
 }
@@ -109,13 +109,20 @@ fn make_sectors(mut star_list: Vec<hns::Star>, recursions_left: u32) -> Vec<hns:
         if 2u32.pow(recursions_left) as usize > star_list.len() {
             panic!("The recursion depth {:?} is greater than the number of stars {:?}", recursions_left, star_list.len());
         }
-        if recursions_left % 3 == 0 {
-            star_list.sort_by(|a, b| a.pos.x.partial_cmp(&b.pos.x).unwrap());
-        } else if recursions_left % 3 == 1 {
-            star_list.sort_by(|a, b| a.pos.y.partial_cmp(&b.pos.y).unwrap());
-        } else {
-            star_list.sort_by(|a, b| a.pos.z.partial_cmp(&b.pos.z).unwrap());
-        }
+
+        star_list.sort_by(|a, b| match recursions_left % 3 {
+            0 => a.pos.x.partial_cmp(&b.pos.x).unwrap(),
+            1 => a.pos.y.partial_cmp(&b.pos.y).unwrap(),
+            2 => a.pos.z.partial_cmp(&b.pos.z).unwrap(),
+            _ => panic!("{:?} % 3 is not 0, 1, or 2, somehow", recursions_left),
+        });
+        // if recursions_left % 3 == 0 {
+        //     star_list.sort_by(|a, b| a.pos.x.partial_cmp(&b.pos.x).unwrap());
+        // } else if recursions_left % 3 == 1 {
+        //     star_list.sort_by(|a, b| a.pos.y.partial_cmp(&b.pos.y).unwrap());
+        // } else {
+        //     star_list.sort_by(|a, b| a.pos.z.partial_cmp(&b.pos.z).unwrap());
+        // }
         let (sub_list_1, sub_list_2) = star_list.split_at(star_list.len()/2);
         let mut sub_list_1 = make_sectors(sub_list_1.to_vec(), recursions_left - 1);
         let sub_list_2 = make_sectors(sub_list_2.to_vec(), recursions_left - 1);

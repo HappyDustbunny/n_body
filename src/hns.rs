@@ -102,9 +102,8 @@ impl Star {
     }
 
     pub fn acc_towards(&mut self, other_star: &Star) {
-        //TODO: if the implementation of == for Hectors works, use here
-        let distance = self.pos.multiply(-1.0).add(&other_star.pos);
-        if distance.length() > std::f32::EPSILON {
+        if self.pos != other_star.pos {
+            let distance = self.pos.multiply(-1.0).add(&other_star.pos);
             let distance = distance.multiply(other_star.mass/distance.length().powi(3));
             self.acc.add_change(&distance);
         }
