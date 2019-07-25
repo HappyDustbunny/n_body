@@ -7,61 +7,69 @@ extern crate n_body;
 use n_body::hns;
 
 fn main() {
-    nannou::app(model).simple_window(view).run();
+    nannou::app(model)
+        .update(update)
+        .simple_window(view)
+        .run();
     // nannou::sketch(view);
 }
 
 struct Model {
-
+    sectors: Vec<hns::Sector>,
+    timestep: f32,
 }
+
 
 fn model(app: &App) -> Model {
-    Model {
-
-    }
-}
-
-fn view(app: &App, model: &Model, frame: &Frame) {
     app.main_window().set_inner_size_points(720.0, 720.0);
 
     let draw = app.draw();
     draw.background().color(BLACK);
-    // draw.ellipse().x_y(50.0, 50.0).radius(1.0).color(WHITE);
 
-    static NUMBER_OF_STARS: usize = 50; // Number of stars
-    let timestep = 5.5; // Time in Mega year
+    let number_of_stars: usize = 500; // Number of stars
+    let timestep = 0.5; // Time in Mega year
 
-    let stars: Vec<hns::Star> = initialise_stars(NUMBER_OF_STARS);
-    let mut sectors = make_sectors(stars, 3);
-    for _k in 0..300 {
-        let mut sectors_as_stars = Vec::new();
-        let mut stars = Vec::new();
-        for sec in &sectors {
-            sectors_as_stars.push(sec.as_star())
+    let stars: Vec<hns::Star> = initialise_stars(number_of_stars);
+    let sectors = make_sectors(stars, 3);
+    Model {
+        sectors,
+        timestep
+    }
+}
+
+fn update(_app: &App, m: &mut Model, _update: Update) {
+    let mut sectors_as_stars = Vec::new();
+    let mut stars = Vec::new();
+    for sec in &m.sectors {
+        sectors_as_stars.push(sec.as_star())
+    }
+    for sec in &mut m.sectors {
+        sec.acc_reset();
+        sec.internal_acc();
+        for sas in &sectors_as_stars {
+            sec.external_acc(sas);
         }
-        for mut sec in sectors {
-            sec.acc_reset();
-            sec.internal_acc();
-            for sas in &sectors_as_stars {
-                sec.external_acc(sas);
-            }
-            for star in sec.star_list {
-                stars.push(star);
-            }
+        for star in &sec.star_list {
+            stars.push(*star);
         }
-        println!("Loop {:?}", _k);
-        for star in &mut stars {
-            star.find_vel(timestep);
-            star.find_pos(timestep);
-            // star.print_stats();
+    }
+    for star in &mut stars {
+        star.find_vel(m.timestep);
+        star.find_pos(m.timestep);
+        // star.print_stats();
+    }
+    m.sectors = make_sectors(stars, 3);
+}
+
+fn view(app: &App, m: &Model, frame: &Frame) {
+    let draw = app.draw();
+    draw.background().color(BLACK); // Comment this out to activate tracks.
+    for sector in &m.sectors{
+        for star in &sector.star_list {
             draw.ellipse().x_y(star.pos.x, star.pos.y).radius(1.0);
         }
-        sectors = make_sectors(stars, 3);
     }
-
     draw.to_frame(app, &frame).unwrap();
-
-    // frame
 }
 
 fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {

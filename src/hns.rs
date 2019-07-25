@@ -116,6 +116,7 @@ impl Star {
     }
 }
 
+#[derive(Clone)]
 pub struct Sector {
     pub total_mass: f32,
     pub center: Hector,
