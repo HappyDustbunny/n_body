@@ -17,6 +17,7 @@ fn main() {
 struct Model {
     sectors: Vec<hns::Sector>,
     timestep: f32,
+    divider: f32,
 }
 
 
@@ -26,14 +27,18 @@ fn model(app: &App) -> Model {
     let draw = app.draw();
     draw.background().color(BLACK);
 
+    let scale = 10.0; //Increases the distances and the speed of the simulation
     let number_of_stars: usize = 500; // Number of stars
-    let timestep = 0.5; // Time in Mega year
+    let timestep = 0.1 * scale; // Time in Mega year
+    let divider = 1.0 * scale; //Zoom factor
+    let radius_of_cluster =  300.0 *scale; //Radius of cluster
 
-    let stars: Vec<hns::Star> = initialise_stars(number_of_stars);
-    let sectors = make_sectors(stars, 3);
+    let stars: Vec<hns::Star> = initialise_stars(number_of_stars, radius_of_cluster);
+    let sectors = make_sectors(stars, 6);
     Model {
-        sectors,
-        timestep
+        sectors: sectors,
+        timestep: timestep,
+        divider: divider,
     }
 }
 
@@ -58,7 +63,7 @@ fn update(_app: &App, m: &mut Model, _update: Update) {
         star.find_pos(m.timestep);
         // star.print_stats();
     }
-    m.sectors = make_sectors(stars, 3);
+    m.sectors = make_sectors(stars, 6);
 }
 
 fn view(app: &App, m: &Model, frame: &Frame) {
@@ -66,14 +71,14 @@ fn view(app: &App, m: &Model, frame: &Frame) {
     draw.background().color(BLACK); // Comment this out to activate tracks.
     for sector in &m.sectors{
         for star in &sector.star_list {
-            draw.ellipse().x_y(star.pos.x, star.pos.y).radius(1.0);
+            draw.ellipse().x_y(star.pos.x / m.divider, star.pos.y / m.divider).radius(1.0);
         }
     }
     draw.to_frame(app, &frame).unwrap();
 }
 
-fn initialise_stars(number_of_stars: usize) -> Vec<hns::Star> {
-    let radius_of_cluster: f32 = 150.0;
+fn initialise_stars(number_of_stars: usize, radius_of_cluster: f32) -> Vec<hns::Star> {
+    // let radius_of_cluster: f32 = 3000.0;
     let mut stars: Vec<hns::Star> = vec![];
 
     for _ in 0..number_of_stars {
