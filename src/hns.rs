@@ -80,7 +80,8 @@ pub struct Star {
     pub mass: f32,
     pub pos: Hector,
     pub vel: Hector,
-    pub acc: Hector
+    pub acc: Hector,
+    pub color: [f32; 3],
 }
 
 impl Star {
@@ -89,7 +90,8 @@ impl Star {
             mass: 1.0,
             pos: Hector::new(),
             vel: Hector::new(),
-            acc: Hector::new()
+            acc: Hector::new(),
+            color: [1.0, 1.0, 1.0]
         }
     }
 
@@ -154,7 +156,8 @@ impl Sector {
             mass: self.total_mass,
             pos: self.center,
             vel: Hector::new(),
-            acc: Hector::new()
+            acc: Hector::new(),
+            color: [1.0, 1.0, 1.0]
         }
     }
 

@@ -27,14 +27,27 @@ fn model(app: &App) -> Model {
     let draw = app.draw();
     draw.background().color(BLACK);
 
-    let scale = 10.0; //Increases the distances and the speed of the simulation
+    let scale = 100.0; //Increases the distances and the speed of the simulation
     let number_of_stars: usize = 500; // Number of stars
     let timestep = 0.1 * scale; // Time in Mega year
-    let divider = 1.0 * scale; //Zoom factor
-    let radius_of_cluster =  300.0 *scale; //Radius of cluster
+    let divider = 0.5 * scale; //Zoom factor
+    let radius_of_cluster =  30.0 *scale; //Radius of cluster
 
-    let stars: Vec<hns::Star> = initialise_stars(number_of_stars, radius_of_cluster);
-    let sectors = make_sectors(stars, 6);
+    let mut stars: Vec<hns::Star> = initialise_stars(number_of_stars, radius_of_cluster, [0.5, 0.5, 1.0]);
+    let cluster_center = hns::Hector{x:6000.0, y:0.0, z:0.0};
+    let cluster_vel = hns::Hector{x:-1.0, y:0.0, z:0.0};
+    set_center_and_vel(&mut stars, cluster_center, cluster_vel);
+
+    let mut stars2: Vec<hns::Star> = initialise_stars(1500, radius_of_cluster, [1.0, 0.5, 0.5]);
+    let cluster_center = hns::Hector{x:-6000.0, y:0.0, z:0.0};
+    let cluster_vel = hns::Hector{x:1.0, y:0.0, z:0.0};
+    set_center_and_vel(&mut stars2, cluster_center, cluster_vel);
+
+    for star in stars2 {
+        stars.push(star);
+    }
+
+    let sectors = make_sectors(stars, 8);
     Model {
         sectors: sectors,
         timestep: timestep,
@@ -71,19 +84,20 @@ fn view(app: &App, m: &Model, frame: &Frame) {
     draw.background().color(BLACK); // Comment this out to activate tracks.
     for sector in &m.sectors{
         for star in &sector.star_list {
-            draw.ellipse().x_y(star.pos.x / m.divider, star.pos.y / m.divider).radius(1.0);
+            draw.ellipse().x_y(star.pos.x / m.divider, star.pos.z / m.divider).radius(1.0).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
         }
     }
     draw.to_frame(app, &frame).unwrap();
 }
 
-fn initialise_stars(number_of_stars: usize, radius_of_cluster: f32) -> Vec<hns::Star> {
+fn initialise_stars(number_of_stars: usize, radius_of_cluster: f32, color: [f32; 3]) -> Vec<hns::Star> {
     // let radius_of_cluster: f32 = 3000.0;
     let mut stars: Vec<hns::Star> = vec![];
 
     for _ in 0..number_of_stars {
         let mut newstar = hns::Star::new();
-        newstar.mass=1.0;
+        newstar.mass=50.0;
+        newstar.color = color;
         let phi = thread_rng().gen_range(0.0, 6.28);
         let theta = thread_rng().gen_range(-3.14, 3.14);
         newstar.pos=hns::Hector {
@@ -92,13 +106,25 @@ fn initialise_stars(number_of_stars: usize, radius_of_cluster: f32) -> Vec<hns::
             z: radius_of_cluster*theta.cos(),
         };
         newstar.vel = hns::Hector {
-            x: -newstar.pos.y/(10.0*radius_of_cluster),
-            y: newstar.pos.x/(10.0*radius_of_cluster),
+            x: -newstar.pos.y/(0.21*radius_of_cluster),
+            y: newstar.pos.x/(0.32*radius_of_cluster),
             z: 0.0
         };
         stars.push(newstar)
     }
+
+    // let mut central_monster = hns::Star::new();
+    // central_monster.mass = 200.0;
+    // stars.push(central_monster);
+
     stars
+}
+
+fn set_center_and_vel(stars: &mut Vec<hns::Star>, cluster_center: hns::Hector, cluster_vel: hns::Hector){
+    for star in stars {
+        star.pos.add_change(&cluster_center);
+        star.vel.add_change(&cluster_vel);
+    };
 }
 
 fn make_sectors(mut star_list: Vec<hns::Star>, recursions_left: u32) -> Vec<hns::Sector> {
