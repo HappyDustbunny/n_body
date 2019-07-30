@@ -1,4 +1,5 @@
 extern crate rand;
+extern crate crossbeam;
 use rand::prelude::*;
 use nannou::prelude::*;
 
@@ -47,7 +48,7 @@ fn model(app: &App) -> Model {
         stars.push(star);
     }
 
-    let sectors = make_sectors(stars, 8);
+    let sectors = make_sectors(stars, 6);
     Model {
         sectors: sectors,
         timestep: timestep,
@@ -61,20 +62,48 @@ fn update(_app: &App, m: &mut Model, _update: Update) {
     for sec in &m.sectors {
         sectors_as_stars.push(sec.as_star())
     }
+
+    let threads = 8;
+    let sectors_per_group = m.sectors.len() / threads;
+    {
+        let timestep = m.timestep;
+        let groups: Vec<&mut [hns::Sector]> = m.sectors.chunks_mut(sectors_per_group).collect();
+        crossbeam::scope(|spawner|{
+            for group in groups.into_iter() {
+                spawner.spawn(|_| {
+                    for sec in group {
+                        sec.acc_reset();
+                        sec.internal_acc();
+                        for sas in &sectors_as_stars {
+                            sec.external_acc(sas);
+                        }
+                        for star in &mut sec.star_list {
+                            star.find_vel(timestep);
+                            star.find_pos(timestep);
+                        }
+                    }
+                });
+            }
+        }).unwrap();
+    }
+
+    // for sec in &mut m.sectors {
+    //     sec.acc_reset();
+    //     sec.internal_acc();
+    //     for sas in &sectors_as_stars {
+    //         sec.external_acc(sas);
+    //     }
+    //     for star in &mut sec.star_list {
+    //         star.find_vel(m.timestep);
+    //         star.find_pos(m.timestep);
+    //         stars.push(*star);
+    //     }
+    // }
+
     for sec in &mut m.sectors {
-        sec.acc_reset();
-        sec.internal_acc();
-        for sas in &sectors_as_stars {
-            sec.external_acc(sas);
-        }
         for star in &sec.star_list {
             stars.push(*star);
         }
-    }
-    for star in &mut stars {
-        star.find_vel(m.timestep);
-        star.find_pos(m.timestep);
-        // star.print_stats();
     }
     m.sectors = make_sectors(stars, 6);
 }
