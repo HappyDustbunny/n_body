@@ -30,8 +30,8 @@ fn model(app: &App) -> Model {
         writeln!(std::io::stderr(), "As input it needs the number of stars in each cluster, their radii").unwrap();
         writeln!(std::io::stderr(), " and the initial position and velocity of CL2.").unwrap();
         writeln!(std::io::stderr(), "CL1 starts at rest at origo.").unwrap();
-        writeln!(std::io::stderr(), "Ex: n_body #_of_stars_CL1, #_of_stars_CL2, radiusCL1, radiusCL2, x, y, z, vx, vy, vz").unwrap();
-        writeln!(std::io::stderr(), "Ex: n_body 1500, 100, 3000.0, 2000.0, 6000.0, 0.0, 0.0, -1.0, 0.0, 0.0").unwrap();
+        writeln!(std::io::stderr(), "Ex: n_body #_of_stars_CL1 #_of_stars_CL2 radiusCL1 radiusCL2 x y z vx vy vz").unwrap();
+        writeln!(std::io::stderr(), "Ex: n_body 1500 100 3000.0 2000.0 6000.0 0.0 0.0 -1.0 0.0 0.0").unwrap();
         std::process::exit(1);
     }
     println!("{:?}", args);
