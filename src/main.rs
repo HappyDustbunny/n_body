@@ -1,7 +1,7 @@
 extern crate rand;
 use rand::prelude::*;
 use nannou::prelude::*;
-
+use std::io::Write;
 
 extern crate n_body;
 use n_body::hns;
@@ -22,25 +22,36 @@ struct Model {
 
 
 fn model(app: &App) -> Model {
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 10 {
+        writeln!(std::io::stderr(), "This program simulates a collision of two star clusters (CL1 and CL2)").unwrap();
+        writeln!(std::io::stderr(), "As input it needs the number of stars in each cluster, their radii").unwrap();
+        writeln!(std::io::stderr(), " and the initial position and velocity of CL2.").unwrap();
+        writeln!(std::io::stderr(), "CL1 starts at rest at origo.").unwrap();
+        writeln!(std::io::stderr(), "Ex: n_body #_of_stars_CL1, #_of_stars_CL2, radiusCL1, radiusCL2, x, y, z, vx, vy, vz").unwrap();
+        writeln!(std::io::stderr(), "Ex: n_body 1500, 100, 3000.0, 2000.0, 6000.0, 0.0, 0.0, -1.0, 0.0, 0.0").unwrap();
+        std::process::exit(1);
+    }
+
     app.main_window().set_inner_size_points(720.0, 720.0);
 
     let draw = app.draw();
     draw.background().color(BLACK);
 
     let scale = 100.0; //Increases the distances and the speed of the simulation
-    let number_of_stars: usize = 500; // Number of stars
+    // let number_of_stars: usize = 500; // Number of stars
     let timestep = 0.1 * scale; // Time in Mega year
     let divider = 0.5 * scale; //Zoom factor
-    let radius_of_cluster =  30.0 *scale; //Radius of cluster
+    // let radius_of_cluster =  30.0 *scale; //Radius of cluster
 
-    let mut stars: Vec<hns::Star> = initialise_stars(number_of_stars, radius_of_cluster, [0.5, 0.5, 1.0]);
-    let cluster_center = hns::Hector{x:6000.0, y:0.0, z:0.0};
-    let cluster_vel = hns::Hector{x:-1.0, y:0.0, z:0.0};
+    let mut stars: Vec<hns::Star> = initialise_stars(args[0].parse().unwrap(), args[2].parse().unwrap(), [0.5, 0.5, 1.0]);
+    let cluster_center = hns::Hector{x:0.0, y:0.0, z:0.0};
+    let cluster_vel = hns::Hector{x:0.0, y:0.0, z:0.0};
     set_center_and_vel(&mut stars, cluster_center, cluster_vel);
 
-    let mut stars2: Vec<hns::Star> = initialise_stars(1500, radius_of_cluster, [1.0, 0.5, 0.5]);
-    let cluster_center = hns::Hector{x:-6000.0, y:0.0, z:0.0};
-    let cluster_vel = hns::Hector{x:1.0, y:0.0, z:0.0};
+    let mut stars2: Vec<hns::Star> = initialise_stars(args[1].parse().unwrap(), args[3].parse().unwrap(), [1.0, 0.5, 0.5]);
+    let cluster_center = hns::Hector{x:args[4].parse().unwrap(), y:args[7].parse().unwrap(), z:args[6].parse().unwrap()};
+    let cluster_vel = hns::Hector{x:args[7].parse().unwrap(), y:args[8].parse().unwrap(), z:args[9].parse().unwrap()};
     set_center_and_vel(&mut stars2, cluster_center, cluster_vel);
 
     for star in stars2 {
