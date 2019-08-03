@@ -1,11 +1,14 @@
 extern crate rand;
 extern crate crossbeam;
-use rand::prelude::*;
+// use rand::prelude::*;
 use nannou::prelude::*;
-use std::io::Write;
+// use std::io::Write;
 
-extern crate n_body;
-use n_body::hns;
+// extern crate n_body;
+// use n_body::hns;
+// use lib::init;
+pub mod hns;
+pub mod init;
 
 fn main() {
     nannou::app(model)
@@ -23,50 +26,56 @@ struct Model {
 
 
 fn model(app: &App) -> Model {
-    let args: Vec<String> = std::env::args().collect();
+    // Collecting and sanitizing arguments:
+    let arguments: Vec<String> = std::env::args().collect();
+    let args = init::sanitize(arguments);
 
-    if args.len() != 11 {
-        writeln!(std::io::stderr(), "This program simulates a collision of two star clusters (CL1 and CL2)").unwrap();
-        writeln!(std::io::stderr(), "As input it needs the number of stars in each cluster, their radii").unwrap();
-        writeln!(std::io::stderr(), " and the initial position and velocity of CL2.").unwrap();
-        writeln!(std::io::stderr(), "CL1 starts at rest at origo.").unwrap();
-        writeln!(std::io::stderr(), "Ex: n_body #_of_stars_CL1 #_of_stars_CL2 radiusCL1 radiusCL2 x y z vx vy vz").unwrap();
-        writeln!(std::io::stderr(), "Ex: n_body 1500 100 3000.0 2000.0 6000.0 0.0 0.0 -1.0 0.0 0.0").unwrap();
-        std::process::exit(1);
-    }
-    println!("{:?}", args);
+    // if args.len() != 11 {
+    //     writeln!(std::io::stderr(), "This program simulates a collision of two star clusters (CL1 and CL2)").unwrap();
+    //     writeln!(std::io::stderr(), "As input it needs the number of stars in each cluster, their radii").unwrap();
+    //     writeln!(std::io::stderr(), " and the initial position and velocity of CL2.").unwrap();
+    //     writeln!(std::io::stderr(), "CL1 starts at rest at origo.").unwrap();
+    //     writeln!(std::io::stderr(), "Ex: n_body #_of_stars_CL1 #_of_stars_CL2 radiusCL1 radiusCL2 x y z vx vy vz").unwrap();
+    //     writeln!(std::io::stderr(), "Ex: n_body 1500 100 3000.0 2000.0 6000.0 0.0 0.0 -1.0 0.0 0.0").unwrap();
+    //     std::process::exit(1);
+    // }
+    // println!("{:?}", args);
 
     app.main_window().set_inner_size_points(720.0, 720.0);
 
     let draw = app.draw();
     draw.background().color(BLACK);
 
-    let scale = 100.0; //Increases the distances and the speed of the simulation
+    // let scale = 100.0; //Increases the distances and the speed of the simulation
     // let number_of_stars: usize = 500; // Number of stars
-    let timestep = 0.1 * scale; // Time in Mega year
-    let divider = 0.5 * scale; //Zoom factor
-    // let radius_of_cluster =  30.0 *scale; //Radius of cluster
-    let number_of_stars = args[1].trim().parse::<usize>().unwrap() as usize;
-    let radius_of_cluster = args[3].trim().parse::<f32>().unwrap();
+    let timestep = 10.0; //0.1 * scale; // Time in Mega year
+    let divider = 50.0; //0.5 * scale; //Zoom factor
 
-    let mut stars: Vec<hns::Star> = initialise_stars(number_of_stars, radius_of_cluster, [0.5, 0.5, 1.0]);
+    // Initializing cluster 1
+    let number_of_stars = args[1] as usize; //.trim().parse::<usize>().unwrap() as usize;
+    let radius_of_cluster = args[3]; //.trim().parse::<f32>().unwrap();
+
+    let mut stars: Vec<hns::Star> = init::initialise_stars(number_of_stars, radius_of_cluster, [0.5, 0.5, 1.0]);
+    // Offsetting center and give initial velocity to cluster 1
     let cluster_center = hns::Hector{x:0.0, y:0.0, z:0.0};
     let cluster_vel = hns::Hector{x:0.0, y:0.0, z:0.0};
-    set_center_and_vel(&mut stars, cluster_center, cluster_vel);
+    init::set_center_and_vel(&mut stars, cluster_center, cluster_vel);
 
-    let number_of_stars = args[2].trim().parse::<usize>().unwrap() as usize;
-    let radius_of_cluster = args[4].trim().parse::<f32>().unwrap();
-    let x = args[5].trim().parse::<f32>().unwrap();
-    let y = args[6].trim().parse::<f32>().unwrap();
-    let z = args[7].trim().parse::<f32>().unwrap();
-    let vx = args[8].trim().parse::<f32>().unwrap();
-    let vy = args[9].trim().parse::<f32>().unwrap();
-    let vz = args[10].trim().parse::<f32>().unwrap();
+    // Initializing cluster 2
+    let number_of_stars = args[2] as usize; //.trim().parse::<usize>().unwrap() as usize;
+    let radius_of_cluster = args[4]; //.trim().parse::<f32>().unwrap();
+    // let x = args[5].trim().parse::<f32>().unwrap();
+    // let y = args[6].trim().parse::<f32>().unwrap();
+    // let z = args[7].trim().parse::<f32>().unwrap();
+    // let vx = args[8].trim().parse::<f32>().unwrap();
+    // let vy = args[9].trim().parse::<f32>().unwrap();
+    // let vz = args[10].trim().parse::<f32>().unwrap();
 
-    let mut stars2: Vec<hns::Star> = initialise_stars(number_of_stars, radius_of_cluster, [1.0, 0.5, 0.5]);
-    let cluster_center = hns::Hector{x:x, y:y, z:z};
-    let cluster_vel = hns::Hector{x:vx, y:vy, z:vz};
-    set_center_and_vel(&mut stars2, cluster_center, cluster_vel);
+    let mut stars2: Vec<hns::Star> = init::initialise_stars(number_of_stars, radius_of_cluster, [1.0, 0.5, 0.5]);
+    // Offsetting center and give initial velocity to cluster 2
+    let cluster_center = hns::Hector{x:args[5], y:args[6], z:args[7]};
+    let cluster_vel = hns::Hector{x:args[8], y:args[9], z:args[10]};
+    init::set_center_and_vel(&mut stars2, cluster_center, cluster_vel);
 
     for star in stars2 {
         stars.push(star);
@@ -143,42 +152,6 @@ fn view(app: &App, m: &Model, frame: &Frame) {
     draw.to_frame(app, &frame).unwrap();
 }
 
-fn initialise_stars(number_of_stars: usize, radius_of_cluster: f32, color: [f32; 3]) -> Vec<hns::Star> {
-    // let radius_of_cluster: f32 = 3000.0;
-    let mut stars: Vec<hns::Star> = vec![];
-
-    for _ in 0..number_of_stars {
-        let mut newstar = hns::Star::new();
-        newstar.mass=50.0;
-        newstar.color = color;
-        let phi = thread_rng().gen_range(0.0, 6.28);
-        let theta = thread_rng().gen_range(-3.14, 3.14);
-        newstar.pos=hns::Hector {
-            x: radius_of_cluster*theta.sin()*phi.cos(),
-            y: radius_of_cluster*theta.sin()*phi.sin(),
-            z: radius_of_cluster*theta.cos(),
-        };
-        newstar.vel = hns::Hector {
-            x: -newstar.pos.y/(0.21*radius_of_cluster),
-            y: newstar.pos.x/(0.32*radius_of_cluster),
-            z: 0.0
-        };
-        stars.push(newstar)
-    }
-
-    // let mut central_monster = hns::Star::new();
-    // central_monster.mass = 200.0;
-    // stars.push(central_monster);
-
-    stars
-}
-
-fn set_center_and_vel(stars: &mut Vec<hns::Star>, cluster_center: hns::Hector, cluster_vel: hns::Hector){
-    for star in stars {
-        star.pos.add_change(&cluster_center);
-        star.vel.add_change(&cluster_vel);
-    };
-}
 
 fn make_sectors(mut star_list: Vec<hns::Star>, recursions_left: u32) -> Vec<hns::Sector> {
     if recursions_left > 0 {
