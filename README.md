@@ -16,7 +16,7 @@ Read Theory.odt to get details of why we set G = 1 in Newton's gravity law.
 <img src="/Cluster.gif?raw=true" align="left">  
 
 \
-Two clusters of 15000 stars collide.   
+Two clusters of 15000 stars each collide.   
 
 \
-The simulation runs slower. This gif shows about 1:30 min runtime.
+The simulation runs slower. This gif shows about 1:30 min runtime on a GTX 970 graphics card.
