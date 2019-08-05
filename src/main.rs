@@ -13,12 +13,15 @@ pub mod init;
 fn main() {
     nannou::app(model)
         .update(update)
-        .simple_window(view)
+        .view(view)
         .run();
     // nannou::sketch(view);
 }
 
 struct Model {
+    cam_xy: WindowId,
+    cam_xz: WindowId,
+    cam_yz: WindowId,
     sectors: Vec<hns::Sector>,
     timestep: f32,
     divider: f32,
@@ -41,10 +44,10 @@ fn model(app: &App) -> Model {
     // }
     // println!("{:?}", args);
 
-    app.main_window().set_inner_size_points(720.0, 720.0);
+    // app.main_window().set_inner_size_points(720.0, 720.0);
 
-    let draw = app.draw();
-    draw.background().color(BLACK);
+    // let draw = app.draw();
+    // draw.background().color(BLACK);
 
     // let scale = 100.0; //Increases the distances and the speed of the simulation
     // let number_of_stars: usize = 500; // Number of stars
@@ -77,12 +80,35 @@ fn model(app: &App) -> Model {
     let cluster_vel = hns::Hector{x:args[8], y:args[9], z:args[10]};
     init::set_center_and_vel(&mut stars2, cluster_center, cluster_vel);
 
+
+    let cam_xy = app
+        .new_window()
+        .with_dimensions(720, 720)
+        .with_title("X Y")
+        .build()
+        .unwrap();
+    let cam_xz = app
+        .new_window()
+        .with_dimensions(720, 720)
+        .with_title("X Z")
+        .build()
+        .unwrap();
+    let cam_yz = app
+        .new_window()
+        .with_dimensions(720, 720)
+        .with_title("Y Z")
+        .build()
+        .unwrap();
+
     for star in stars2 {
         stars.push(star);
     }
 
     let sectors = make_sectors(stars, 6);
     Model {
+        cam_xy: cam_xy,
+        cam_xz: cam_xz,
+        cam_yz: cam_yz,
         sectors: sectors,
         timestep: timestep,
         divider: divider,
@@ -142,14 +168,39 @@ fn update(_app: &App, m: &mut Model, _update: Update) {
 }
 
 fn view(app: &App, m: &Model, frame: &Frame) {
-    let draw = app.draw();
-    draw.background().color(BLACK); // Comment this out to activate tracks.
-    for sector in &m.sectors{
-        for star in &sector.star_list {
-            draw.ellipse().x_y(star.pos.x / m.divider, star.pos.z / m.divider).radius(1.0).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
-        }
+    match frame.window_id() {
+        id if id == m.cam_xy => {
+            let draw_xy = app.draw_for_window(m.cam_xy).unwrap();
+            draw_xy.background().color(BLACK); // Comment this out to activate tracks.
+            for sector in &m.sectors{
+                for star in &sector.star_list {
+                    draw_xy.ellipse().x_y(star.pos.x / m.divider, star.pos.y / m.divider).radius(star.mass).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
+                }
+            }
+            draw_xy.to_frame(app, &frame).unwrap();
+        },
+        id if id == m.cam_xz => {
+            let draw_xz = app.draw_for_window(m.cam_xz).unwrap();
+            draw_xz.background().color(BLACK); // Comment this out to activate tracks.
+            for sector in &m.sectors{
+                for star in &sector.star_list {
+                    draw_xz.ellipse().x_y(star.pos.x / m.divider, star.pos.z / m.divider).radius(star.mass).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
+                }
+            }
+            draw_xz.to_frame(app, &frame).unwrap();
+        },
+        id if id == m.cam_yz => {
+            let draw_yz = app.draw_for_window(m.cam_yz).unwrap();
+            draw_yz.background().color(BLACK); // Comment this out to activate tracks.
+            for sector in &m.sectors{
+                for star in &sector.star_list {
+                    draw_yz.ellipse().x_y(star.pos.y / m.divider, star.pos.z / m.divider).radius(star.mass).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
+                }
+            }
+            draw_yz.to_frame(app, &frame).unwrap();
+        },
+        _ => (),
     }
-    draw.to_frame(app, &frame).unwrap();
 }
 
 
@@ -158,13 +209,12 @@ fn make_sectors(mut star_list: Vec<hns::Star>, recursions_left: u32) -> Vec<hns:
         if 2u32.pow(recursions_left) as usize > star_list.len() {
             panic!("The recursion depth {:?} is greater than the number of stars {:?}", recursions_left, star_list.len());
         }
-        if recursions_left % 3 == 0 {
-            star_list.sort_by(|a, b| a.pos.x.partial_cmp(&b.pos.x).unwrap());
-        } else if recursions_left % 3 == 1 {
-            star_list.sort_by(|a, b| a.pos.y.partial_cmp(&b.pos.y).unwrap());
-        } else {
-            star_list.sort_by(|a, b| a.pos.z.partial_cmp(&b.pos.z).unwrap());
-        }
+        star_list.sort_by(|a, b| match recursions_left % 3 {
+            0 => a.pos.x.partial_cmp(&b.pos.x).unwrap(),
+            1 => a.pos.y.partial_cmp(&b.pos.y).unwrap(),
+            2 => a.pos.z.partial_cmp(&b.pos.z).unwrap(),
+            _ => panic!("recursions_left % 3 somehow resulted in something other than 0, 1, or 2")
+        });
         let (sub_list_1, sub_list_2) = star_list.split_at(star_list.len()/2);
         let mut sub_list_1 = make_sectors(sub_list_1.to_vec(), recursions_left - 1);
         let sub_list_2 = make_sectors(sub_list_2.to_vec(), recursions_left - 1);
