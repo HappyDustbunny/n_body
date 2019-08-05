@@ -1,12 +1,7 @@
 extern crate rand;
 extern crate crossbeam;
-// use rand::prelude::*;
 use nannou::prelude::*;
-// use std::io::Write;
 
-// extern crate n_body;
-// use n_body::hns;
-// use lib::init;
 pub mod hns;
 pub mod init;
 
@@ -33,30 +28,12 @@ fn model(app: &App) -> Model {
     let arguments: Vec<String> = std::env::args().collect();
     let args = init::sanitize(arguments);
 
-    // if args.len() != 11 {
-    //     writeln!(std::io::stderr(), "This program simulates a collision of two star clusters (CL1 and CL2)").unwrap();
-    //     writeln!(std::io::stderr(), "As input it needs the number of stars in each cluster, their radii").unwrap();
-    //     writeln!(std::io::stderr(), " and the initial position and velocity of CL2.").unwrap();
-    //     writeln!(std::io::stderr(), "CL1 starts at rest at origo.").unwrap();
-    //     writeln!(std::io::stderr(), "Ex: n_body #_of_stars_CL1 #_of_stars_CL2 radiusCL1 radiusCL2 x y z vx vy vz").unwrap();
-    //     writeln!(std::io::stderr(), "Ex: n_body 1500 100 3000.0 2000.0 6000.0 0.0 0.0 -1.0 0.0 0.0").unwrap();
-    //     std::process::exit(1);
-    // }
-    // println!("{:?}", args);
-
-    // app.main_window().set_inner_size_points(720.0, 720.0);
-
-    // let draw = app.draw();
-    // draw.background().color(BLACK);
-
-    // let scale = 100.0; //Increases the distances and the speed of the simulation
-    // let number_of_stars: usize = 500; // Number of stars
     let timestep = 10.0; //0.1 * scale; // Time in Mega year
     let divider = 50.0; //0.5 * scale; //Zoom factor
 
     // Initializing cluster 1
-    let number_of_stars = args[1] as usize; //.trim().parse::<usize>().unwrap() as usize;
-    let radius_of_cluster = args[3]; //.trim().parse::<f32>().unwrap();
+    let number_of_stars = args[0] as usize; //.trim().parse::<usize>().unwrap() as usize;
+    let radius_of_cluster = args[2]; //.trim().parse::<f32>().unwrap();
 
     let mut stars: Vec<hns::Star> = init::initialise_stars(number_of_stars, radius_of_cluster, [0.5, 0.5, 1.0]);
     // Offsetting center and give initial velocity to cluster 1
@@ -65,37 +42,31 @@ fn model(app: &App) -> Model {
     init::set_center_and_vel(&mut stars, cluster_center, cluster_vel);
 
     // Initializing cluster 2
-    let number_of_stars = args[2] as usize; //.trim().parse::<usize>().unwrap() as usize;
-    let radius_of_cluster = args[4]; //.trim().parse::<f32>().unwrap();
-    // let x = args[5].trim().parse::<f32>().unwrap();
-    // let y = args[6].trim().parse::<f32>().unwrap();
-    // let z = args[7].trim().parse::<f32>().unwrap();
-    // let vx = args[8].trim().parse::<f32>().unwrap();
-    // let vy = args[9].trim().parse::<f32>().unwrap();
-    // let vz = args[10].trim().parse::<f32>().unwrap();
+    let number_of_stars = args[1] as usize; //.trim().parse::<usize>().unwrap() as usize;
+    let radius_of_cluster = args[3]; //.trim().parse::<f32>().unwrap();
 
     let mut stars2: Vec<hns::Star> = init::initialise_stars(number_of_stars, radius_of_cluster, [1.0, 0.5, 0.5]);
     // Offsetting center and give initial velocity to cluster 2
-    let cluster_center = hns::Hector{x:args[5], y:args[6], z:args[7]};
-    let cluster_vel = hns::Hector{x:args[8], y:args[9], z:args[10]};
+    let cluster_center = hns::Hector{x:args[4], y:args[5], z:args[6]};
+    let cluster_vel = hns::Hector{x:args[7], y:args[8], z:args[9]};
     init::set_center_and_vel(&mut stars2, cluster_center, cluster_vel);
 
 
     let cam_xy = app
         .new_window()
-        .with_dimensions(720, 720)
+        .with_dimensions(450, 450)
         .with_title("X Y")
         .build()
         .unwrap();
     let cam_xz = app
         .new_window()
-        .with_dimensions(720, 720)
+        .with_dimensions(450, 450)
         .with_title("X Z")
         .build()
         .unwrap();
     let cam_yz = app
         .new_window()
-        .with_dimensions(720, 720)
+        .with_dimensions(450, 450)
         .with_title("Y Z")
         .build()
         .unwrap();

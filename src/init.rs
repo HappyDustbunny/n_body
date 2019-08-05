@@ -3,7 +3,6 @@ extern crate rand;
 use std::io::Write;
 use rand::prelude::*;
 
-// extern crate n_body;
 use super::hns;
 
 pub fn sanitize(args: Vec<String>) -> std::vec::Vec<f32> {
@@ -22,9 +21,10 @@ pub fn sanitize(args: Vec<String>) -> std::vec::Vec<f32> {
         std::process::exit(1);
     }
 
-    for arg in args {
-        sanitzed_args.push(arg.parse().unwrap())
+    for num in 1..11 {
+            sanitzed_args.push(args[num].parse().unwrap())
     }
+    
     sanitzed_args
 }
 
