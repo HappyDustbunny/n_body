@@ -10,7 +10,6 @@ fn main() {
         .update(update)
         .view(view)
         .run();
-    // nannou::sketch(view);
 }
 
 struct Model {
@@ -28,8 +27,8 @@ fn model(app: &App) -> Model {
     let arguments: Vec<String> = std::env::args().collect();
     let args = init::sanitize(arguments);
 
-    let timestep = 10.0; //0.1 * scale; // Time in Mega year
-    let divider = 50.0; //0.5 * scale; //Zoom factor
+    let timestep = 10.0; // Time in Mega year
+    let divider = 50.0; //Zoom factor
 
     // Initializing cluster 1
     let number_of_stars = args[0] as usize; //.trim().parse::<usize>().unwrap() as usize;
@@ -54,19 +53,19 @@ fn model(app: &App) -> Model {
 
     let cam_xy = app
         .new_window()
-        .with_dimensions(450, 450)
+        .with_dimensions(350, 350)
         .with_title("X Y")
         .build()
         .unwrap();
     let cam_xz = app
         .new_window()
-        .with_dimensions(450, 450)
+        .with_dimensions(700, 700)
         .with_title("X Z")
         .build()
         .unwrap();
     let cam_yz = app
         .new_window()
-        .with_dimensions(450, 450)
+        .with_dimensions(350, 350)
         .with_title("Y Z")
         .build()
         .unwrap();
@@ -89,25 +88,26 @@ fn model(app: &App) -> Model {
 fn update(_app: &App, m: &mut Model, _update: Update) {
     let mut sectors_as_stars = Vec::new();
     let mut stars = Vec::new();
-    for sec in &m.sectors {
+    for sec in &m.sectors {  // Gravitationally each sector can be view as a massive star in the center of mass
         sectors_as_stars.push(sec.as_star())
     }
 
-    let threads = 8;
+    let threads = 8;  // Setting the numbers of processors on the hardware
     let sectors_per_group = m.sectors.len() / threads;
     {
         let timestep = m.timestep;
+        // The sectors are distributed in as many groups as there are threads:
         let groups: Vec<&mut [hns::Sector]> = m.sectors.chunks_mut(sectors_per_group).collect();
-        crossbeam::scope(|spawner|{
+        crossbeam::scope(|spawner|{  // Each group is assigned to a thread by crossbeam
             for group in groups.into_iter() {
                 spawner.spawn(|_| {
                     for sec in group {
                         sec.acc_reset();
-                        sec.internal_acc();
-                        for sas in &sectors_as_stars {
+                        sec.internal_acc(); // The acceleration from other stars in the current sector is calculated
+                        for sas in &sectors_as_stars { // The acceleration from other sectors is calculated
                             sec.external_acc(sas);
                         }
-                        for star in &mut sec.star_list {
+                        for star in &mut sec.star_list { // Each star in the current sector is moved according to acceleration in the given time
                             star.find_vel(timestep);
                             star.find_pos(timestep);
                         }
@@ -117,33 +117,20 @@ fn update(_app: &App, m: &mut Model, _update: Update) {
         }).unwrap();
     }
 
-    // for sec in &mut m.sectors {
-    //     sec.acc_reset();
-    //     sec.internal_acc();
-    //     for sas in &sectors_as_stars {
-    //         sec.external_acc(sas);
-    //     }
-    //     for star in &mut sec.star_list {
-    //         star.find_vel(m.timestep);
-    //         star.find_pos(m.timestep);
-    //         stars.push(*star);
-    //     }
-    // }
-
-    for sec in &mut m.sectors {
+    for sec in &mut m.sectors { // The stars are collected ...
         for star in &sec.star_list {
             stars.push(*star);
         }
     }
-    m.sectors = make_sectors(stars, 6);
+    m.sectors = make_sectors(stars, 6); // ... and split into new sectors.
 }
 
 fn view(app: &App, m: &Model, frame: &Frame) {
     match frame.window_id() {
         id if id == m.cam_xy => {
             let draw_xy = app.draw_for_window(m.cam_xy).unwrap();
-            draw_xy.background().color(BLACK); // Comment this out to activate tracks.
-            for sector in &m.sectors{
+            draw_xy.background().color(BLACK); // The last picture is erased ...
+            for sector in &m.sectors{  // ... and the new positions is drawn.
                 for star in &sector.star_list {
                     draw_xy.ellipse().x_y(star.pos.x / m.divider, star.pos.y / m.divider).radius(star.mass).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
                 }
@@ -176,11 +163,13 @@ fn view(app: &App, m: &Model, frame: &Frame) {
 
 
 fn make_sectors(mut star_list: Vec<hns::Star>, recursions_left: u32) -> Vec<hns::Sector> {
+    // Split the stars up in eight sectors, which in turn is split in eight sectos, which ...
+    // Think a cube sliced horizontally, vertically and parallel to the side facing you.
     if recursions_left > 0 {
         if 2u32.pow(recursions_left) as usize > star_list.len() {
             panic!("The recursion depth {:?} is greater than the number of stars {:?}", recursions_left, star_list.len());
         }
-        star_list.sort_by(|a, b| match recursions_left % 3 {
+        star_list.sort_by(|a, b| match recursions_left % 3 { // The stars are sorted after x, y or z coordinate
             0 => a.pos.x.partial_cmp(&b.pos.x).unwrap(),
             1 => a.pos.y.partial_cmp(&b.pos.y).unwrap(),
             2 => a.pos.z.partial_cmp(&b.pos.z).unwrap(),
