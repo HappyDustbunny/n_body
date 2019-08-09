@@ -5,6 +5,15 @@ use rand::prelude::*;
 
 use super::hns;
 
+const ERROR_MESSAGE: &'static str = r"
+This program simulates a collision of two star clusters (CL1 and CL2)
+As input it needs the number of stars in each cluster, their radii
+ and the initial position and velocity of CL2.
+CL1 starts at rest at origo.
+Ex: n_body #_of_stars_CL1 #_of_stars_CL2 radiusCL1 radiusCL2 x y z vx vy vz
+Ex: n_body 1500 100 3000.0 2000.0 6000.0 0.0 0.0 -1.0 0.0 0.0
+";
+
 pub fn sanitize(args: Vec<String>) -> std::vec::Vec<f32> {
     let mut sanitzed_args: Vec<f32> = Vec::new();
 
@@ -12,12 +21,13 @@ pub fn sanitize(args: Vec<String>) -> std::vec::Vec<f32> {
         writeln!(std::io::stderr(), "Wrong number of parameters or wrong type(s)").unwrap();
         println!("{:?}", args);
 
-        writeln!(std::io::stderr(), "This program simulates a collision of two star clusters (CL1 and CL2)").unwrap();
-        writeln!(std::io::stderr(), "As input it needs the number of stars in each cluster, their radii").unwrap();
-        writeln!(std::io::stderr(), " and the initial position and velocity of CL2.").unwrap();
-        writeln!(std::io::stderr(), "CL1 starts at rest at origo.").unwrap();
-        writeln!(std::io::stderr(), "Ex: n_body #_of_stars_CL1 #_of_stars_CL2 radiusCL1 radiusCL2 x y z vx vy vz").unwrap();
-        writeln!(std::io::stderr(), "Ex: n_body 1500 100 3000 2000 6000 0 0 -1 0 0").unwrap();
+        writeln!(std::io::stderr(), "{}", ERROR_MESSAGE).unwrap();
+        // writeln!(std::io::stderr(), "This program simulates a collision of two star clusters (CL1 and CL2)").unwrap();
+        // writeln!(std::io::stderr(), "As input it needs the number of stars in each cluster, their radii").unwrap();
+        // writeln!(std::io::stderr(), " and the initial position and velocity of CL2.").unwrap();
+        // writeln!(std::io::stderr(), "CL1 starts at rest at origo.").unwrap();
+        // writeln!(std::io::stderr(), "Ex: n_body #_of_stars_CL1 #_of_stars_CL2 radiusCL1 radiusCL2 x y z vx vy vz").unwrap();
+        // writeln!(std::io::stderr(), "Ex: n_body 1500 100 3000.0 2000.0 6000.0 0.0 0.0 -1.0 0.0 0.0").unwrap();
         std::process::exit(1);
     }
 
