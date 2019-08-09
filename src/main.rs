@@ -102,9 +102,9 @@ fn update(_app: &App, m: &mut Model, _update: Update) {
             for group in groups.into_iter() {
                 spawner.spawn(|_| {
                     for sec in group {
-                        sec.acc_reset();
                         sec.internal_acc(); // The acceleration from other stars in the current sector is calculated
                         for sas in &sectors_as_stars { // The acceleration from other sectors is calculated
+                        // sec.acc_reset();
                             sec.external_acc(sas);
                         }
                         for star in &mut sec.star_list { // Each star in the current sector is moved according to acceleration in the given time
@@ -128,34 +128,34 @@ fn update(_app: &App, m: &mut Model, _update: Update) {
 fn view(app: &App, m: &Model, frame: &Frame) {
     match frame.window_id() {
         id if id == m.cam_xy => {
-            let draw_xy = app.draw_for_window(m.cam_xy).unwrap();
+            let draw_xy = app.draw_for_window(id).unwrap();
             draw_xy.background().color(BLACK); // The last picture is erased ...
             for sector in &m.sectors{  // ... and the new positions is drawn.
                 for star in &sector.star_list {
                     draw_xy.ellipse().x_y(star.pos.x / m.divider, star.pos.y / m.divider).radius(star.mass).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
                 }
             }
-            draw_xy.to_frame(app, &frame).unwrap();
+            draw_xy.to_frame(app, frame).unwrap();
         },
         id if id == m.cam_xz => {
-            let draw_xz = app.draw_for_window(m.cam_xz).unwrap();
+            let draw_xz = app.draw_for_window(id).unwrap();
             draw_xz.background().color(BLACK); // Comment this out to activate tracks.
             for sector in &m.sectors{
                 for star in &sector.star_list {
                     draw_xz.ellipse().x_y(star.pos.x / m.divider, star.pos.z / m.divider).radius(star.mass).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
                 }
             }
-            draw_xz.to_frame(app, &frame).unwrap();
+            draw_xz.to_frame(app, frame).unwrap();
         },
         id if id == m.cam_yz => {
-            let draw_yz = app.draw_for_window(m.cam_yz).unwrap();
+            let draw_yz = app.draw_for_window(id).unwrap();
             draw_yz.background().color(BLACK); // Comment this out to activate tracks.
             for sector in &m.sectors{
                 for star in &sector.star_list {
                     draw_yz.ellipse().x_y(star.pos.y / m.divider, star.pos.z / m.divider).radius(star.mass).color(Rgb::new(star.color[0], star.color[1], star.color[2]));
                 }
             }
-            draw_yz.to_frame(app, &frame).unwrap();
+            draw_yz.to_frame(app, frame).unwrap();
         },
         _ => (),
     }

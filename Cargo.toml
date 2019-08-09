@@ -9,4 +9,4 @@ edition = "2018"
 [dependencies]
 crossbeam = "0.7.2"
 rand = "0.6.5"
-nannou = "0.10.0"
+nannou = { git = "https://github.com/nannou-org/nannou", branch = "master" }

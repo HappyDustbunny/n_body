@@ -12,14 +12,14 @@ impl Hector {
         Hector {x:0.0, y:0.0, z:0.0}
     }
     // Adds another Hector to current Hector
-    pub fn add_change(&mut self, other_hector: &Hector) {
+    pub fn add_change(&mut self, other_hector: &Self) {
         self.x += other_hector.x;
         self.y += other_hector.y;
         self.z += other_hector.z;
     }
 
-    pub fn add(&self, other_hector: &Hector) -> Hector {
-        Hector {
+    pub fn add(&self, other_hector: &Self) -> Self {
+        Self {
             x: self.x + other_hector.x,
             y: self.y + other_hector.y,
             z: self.z + other_hector.z
@@ -32,8 +32,8 @@ impl Hector {
         self.z *= number;
     }
 
-    pub fn multiply(&self, number: f32) -> Hector {
-        Hector {
+    pub fn multiply(&self, number: f32) -> Self {
+        Self {
             x: self.x * number,
             y: self.y * number,
             z: self.z * number
@@ -46,16 +46,16 @@ impl Hector {
         self.z /= number;
     }
 
-    pub fn divide_by(&self, number: f32) -> Hector {
-        Hector {
+    pub fn divide_by(&self, number: f32) -> Self {
+        Self {
             x: self.x / number,
             y: self.y / number,
             z: self.z / number
         }
     }
 
-    pub fn cross(&self, other_hector: &Hector) -> Hector {
-        Hector {
+    pub fn cross(&self, other_hector: &Self) -> Self {
+        Self {
             x: (self.y * other_hector.z) - (self.z * other_hector.y),
             y: (self.z * other_hector.x) - (self.x * other_hector.z),
             z: (self.x * other_hector.y) - (self.y * other_hector.x)
@@ -68,7 +68,7 @@ impl Hector {
 }
 
 impl PartialEq for Hector { //Makes it so you can see if A and B's xyz are the same with A == B
-    fn eq(&self, other: &Hector) -> bool {
+    fn eq(&self, other: &Self) -> bool {
         self.x == other.x &&
         self.y == other.y &&
         self.z == other.z
@@ -85,8 +85,8 @@ pub struct Star {
 }
 
 impl Star {
-    pub fn new() -> Star {
-        Star {
+    pub fn new() -> Self {
+        Self {
             mass: 1.0,
             pos: Hector::new(),
             vel: Hector::new(),
@@ -103,7 +103,7 @@ impl Star {
         self.pos.add_change(&self.vel.multiply(timestep));
     }
 
-    pub fn acc_towards(&mut self, other_star: &Star) {
+    pub fn acc_towards(&mut self, other_star: &Self) {
         if self.pos != other_star.pos {
             let distance = self.pos.multiply(-1.0).add(&other_star.pos);
             let distance = distance.multiply(other_star.mass/distance.length().powi(3));
@@ -126,7 +126,7 @@ pub struct Sector {
 }
 
 impl Sector {
-    pub fn new() -> Sector { //Makes a new, empty Sector.
+    pub fn new() -> Self { //Makes a new, empty Sector.
         Sector {
             total_mass: 0.0,
             center: Hector::new(),
@@ -161,15 +161,17 @@ impl Sector {
         }
     }
 
-    pub fn acc_reset(&mut self) { //Sets the acceleration of all Stars in the Sector to 0.
-        for n in 0..self.star_list.len() {
-            self.star_list[n].acc = Hector::new();
-        }
-    }
+    // pub fn acc_reset(&mut self) { //Sets the acceleration of all Stars in the Sector to 0.
+    //     for n in 0..self.star_list.len() {
+    //         self.star_list[n].acc = Hector::new();
+    //     }
+    // }
 
-    pub fn internal_acc(&mut self) { //Accelerates all Stars in the Sector towards each other.
+    pub fn internal_acc(&mut self) { //Resets the acceleration of all stars in the sector,
+                                     //then accelerates them towards each other.
         for n in 0..self.star_list.len() {
             let mut current_star = self.star_list[n];
+            current_star.acc = Hector::new();
             for m in 0..self.star_list.len() {
                 current_star.acc_towards(&self.star_list[m]);
             }
